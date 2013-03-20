@@ -1,6 +1,14 @@
 #/usr/bin/env python
 """
-Spacewar! is one of the earliest known digital computer games. It is a two-player game, with each player taking control of a spaceship and attempting to destroy the other. A star in the centre of the screen pulls on both ships and requires maneuvering to avoid falling into it.
+Spacewar! Spacewar! Spacewar!
+(With some code taken from chimp.py)
+
+NEW TODO:
+Move classes into their own files.
+Load all images at beginning
+Make code, y'know, more pythonic.
+Get rid of vector code?
+
 
 TODO:
 ships explode
@@ -17,21 +25,19 @@ OPTIMIZATIONS:
 """
 ### Import Modules
 
-import os, pygame, math, random
 from pygame.locals import *
-from math import sqrt
-
-# numpy arrays are (almost too) elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
-# I don't remember why I'm not just using plain arrays. Speed? Oh well.
-
 from numpy import array
+
+# Numeric arrays are (almost too) elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
+# I don't remember why I'm not just using plain arrays. Speed? Oh well.
 
 from spacewar_func import * # My Spacewar functions
 
 ### Stuff ya can change
 
-WINDOW_SIZE = (800,600)
+DISP_WIDTH, DISP_HEIGHT  = (800,600)
 SOUND = 1
+FPS = 30 # frames per second
 
 WALLS = 1           # Does the universe have bouncy walls? Or is it toroidal?
 GRAV_CONST = 0.01   # I like to make this very low, and the sun(s) massive.
@@ -46,11 +52,11 @@ SHIP2_LEFT_KEY   = K_j
 SHIP2_RIGHT_KEY  = K_l
 SHIP2_SHOOT_KEY  = K_k
 
-SUN = 2500         # Mass of Sun. 0 = no sun
+SUN = 2500          # Mass of Sun. 0 = no sun
 MAXSPEED = 30
-SHIP_ROTATE = 10   # How fast a ship can rotate. Specifically: how many degrees a ship can turn in a tick.
+SHIP_ROTATE = 10 # How fast a ship can rotate. Specifically: how many degrees a ship can turn in a tick.
 THRUST = 0.1
-START_ENERGY = 10  # Eventually, 100
+START_ENERGY = 10 # Eventually, 100
 CRASH_PAIN = 5
 SHOT_SPEED = 6
 SHOT_LIFESPAN = 250
@@ -78,10 +84,10 @@ ships      = pygame.sprite.Group() # For keeping track of Ship.meters
 class Body(pygame.sprite.Sprite):
 	"Ships, shots, suns are all subclasses of this."
 
-	def __init__(self,img_filename,p,v=(0,0)):
+	def __init__(self,img,p,v=(0,0)):
 		pygame.sprite.Sprite.__init__(self)
-		self.image, self.rect = load_image(img_filename)
-		self.area = pygame.Rect(0,0,WINDOW_SIZE[0],WINDOW_SIZE[1])
+		self.image, self.rect = img
+		self.area = pygame.Rect(0,0,DISP_WIDTH,DISP_HEIGHT)
 		self.rect.center = p
 		self.p = array(self.rect.center) # position
 		self.v = array(v)                # velocity
@@ -95,9 +101,9 @@ class Body(pygame.sprite.Sprite):
 		"The speed of the Body, squared."
 		return self.v[0]**2 + self.v[1]**2 # Why not return the speed? Because math.sqrt() is relatively expensive.
 
-	def intersects(a,b):
+	def intersects(self,b):
 		"Answers the question: Does this body intersect the body b?"
-		return dist_sqrd(a.p,b.p) <= (a.radius + b.radius)**2
+		return dist_sqrd(self.p,b.p) <= (self.radius + b.radius)**2
 
 	# Well, the gravity's nice, but the orbits are like spirographs.
 	def pulledby(self,b):
@@ -137,42 +143,42 @@ class Body(pygame.sprite.Sprite):
 
 		self.rect.center = self.p # Update where the picture is blitted
 
-	def collide(a,b):
-		"""A collision between two Bodys, a and b."""
+	def collide(self,b):
+		"""A collision between two Bodys, self and b."""
 		# This code is not in the class definitions of Ship, Sun, and Shot because
 		# A) I wanted to keep it in one place, and B) I didn't want to have to duplicate
 		# code: ship.collide(shot) should be the same as shot.collide(ship).
 
-		if isinstance(a,Sun):
+		if isinstance(self,Sun):
 			if isinstance(b,Sun):
 				soundplay["bonk"]()
-				bounce(a,b)
+				bounce(self,b)
 			if isinstance(b,Ship):
 				soundplay["bonk"]()
-				bounce(a,b)
+				bounce(self,b)
 				b.meter.decrease(CRASH_PAIN)
 			if isinstance(b,Shot):
 				soundplay["drip"]()
 				b.timeleft = 0
-		if isinstance(a,Ship):
+		if isinstance(self,Ship):
 			if isinstance(b,Sun):
 				soundplay["bonk"]()
-				bounce(a,b)
-				a.meter.decrease(CRASH_PAIN)
+				bounce(self,b)
+				self.meter.decrease(CRASH_PAIN)
 			if isinstance(b,Ship):
 				soundplay["bam"]()
-				bounce(a,b)
+				bounce(self,b)
 			if isinstance(b,Shot):
 				soundplay["doink"]()
 				b.timeleft = 0
-				a.meter.decrease(SHOT_PAIN)
-		if isinstance(a,Shot):
+				self.meter.decrease(SHOT_PAIN)
+		if isinstance(self,Shot):
 			if isinstance(b,Sun): soundplay["drip"]()
 			if isinstance(b,Ship):
 				soundplay["doink"]()
 				b.meter.decrease(SHOT_PAIN)
 			# if isinstance(b,Shot): tiny_boom.play()
-			a.timeleft = 0
+			self.timeleft = 0
 
 ### End class Body
 
@@ -180,8 +186,8 @@ class Body(pygame.sprite.Sprite):
 class Sun(Body):
 	"""Sun object."""
 
-	def __init__(self,img_filename,p,v=(0,0)):
-		Body.__init__(self,img_filename,p,v) #call Body intializer
+	def __init__(self,img,p,v=(0,0)):
+		Body.__init__(self,img,p,v) #call Body intializer
 		self.mass = SUN
 
 ### End class Sun
@@ -190,8 +196,8 @@ class Sun(Body):
 class Ship(Body):
 	"""Spaceship object."""
 
-	def __init__(self,img_filename,p,v=(0,0)):
-		Body.__init__(self,img_filename,p,v)
+	def __init__(self,img,p,v=(0,0)):
+		Body.__init__(self,img,p,v)
 		self.angle = 0.0
 		self.original = self.image # Useful for image rotations.
 		self.thrust = 0
@@ -219,16 +225,16 @@ class Ship(Body):
 		if self.meter <= 0:
 			self.kill()
 			self.meter.value = 0
-			Shot("shot.png",
+			Shot(load_image("shot.png"),
 			    (self.p[0] + 1.5*self.radius ,self.p[1] + 1.5*self.radius),
 			    (self.v[0] + SHOT_SPEED      ,self.v[1] + 3))
-			Shot("shot.png",
+			Shot(load_image("shot.png"),
 			    (self.p[0] + 1.5*self.radius ,self.p[1] - 1.5*self.radius),
 			    (self.v[0] + SHOT_SPEED      ,self.v[1] - 3))
-			Shot("shot.png",
+			Shot(load_image("shot.png"),
 			    (self.p[0] - 1.5*self.radius ,self.p[1] + 1.5*self.radius),
 			    (self.v[0] - SHOT_SPEED      ,self.v[1] + 3))
-			Shot("shot.png",
+			Shot(load_image("shot.png"),
 			    (self.p[0] - 1.5*self.radius ,self.p[1] - 1.5*self.radius),
 			    (self.v[0] - SHOT_SPEED      ,self.v[1] - 3))
 
@@ -240,7 +246,7 @@ class Ship(Body):
 		"shoot a missile"
 		tmp_thrustvec = self.thrustvec() # I use it twice, so I calculate it once
 		self.cantshoot = SHOT_DELAY
-		Shot("shot.png",
+		Shot(load_image("shot.png"),
 		    (self.p[0] + 1.5*self.radius * tmp_thrustvec[0],self.p[1] + 1.5*self.radius * tmp_thrustvec[1]),
 		    (self.v[0] + SHOT_SPEED      * tmp_thrustvec[0],self.v[1] + SHOT_SPEED      * tmp_thrustvec[1]))
 
@@ -249,8 +255,8 @@ class Ship(Body):
 
 class Shot(Body):
 	"""Shot object."""
-	def __init__(self,img_filename,p,v=(0,0)):
-		Body.__init__(self,img_filename,p,v)
+	def __init__(self,img,p,v=(0,0)):
+		Body.__init__(self,img,p,v)
 		self.timeleft = SHOT_LIFESPAN; # Why is there a semicolon here? I'm scared to delete it.
 
 # Should I really be killing shots, or just putting them out of the way until one needs to be born?
@@ -329,7 +335,7 @@ def main():
 	#Initialize Everything
 	pygame.init()
 	if not SOUND: pygame.mixer.quit()
-	screen = pygame.display.set_mode(WINDOW_SIZE)
+	screen = pygame.display.set_mode((DISP_WIDTH,DISP_HEIGHT))
 	pygame.display.set_caption('Spacewar')
 
 	# Create and display the backgound
@@ -344,12 +350,12 @@ def main():
 	soundplay["bam"]   = load_sound('bam.wav')
 	soundplay["bonk"]  = load_sound('bonk.wav')
 	soundplay["doink"] = load_sound('doink.wav')
-	ship1 = Ship("ship.png",(200,200),(-3,3))
-	if SUN: Sun("ball.png",(400,300))
+	ship1 = Ship(load_image("ship.png"),(200,200),(-3,3))
+	if SUN: Sun(load_image("ball.png"),(400,300))
 
 #Main Loop
 	while 1:
-		clock.tick(60)
+		clock.tick(FPS)
 
 		#Handle Input Events
 		for event in pygame.event.get():
