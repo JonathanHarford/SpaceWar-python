@@ -1,9 +1,12 @@
 #/usr/bin/env python
 
 """
-Spacewar! is one of the earliest known digital computer games. It is a two-player game, with each player taking control of a spaceship and attempting to destroy the other.
+Spacewar! is one of the earliest known digital computer games. It is a
+two-player game, with each player taking control of a spaceship and attempting
+to destroy the other.
 
-A star in the centre of the screen pulls on both ships and requires maneuvering to avoid falling into it.
+A star in the centre of the screen pulls on both ships and requires maneuvering
+to avoid falling into it.
 
 TODO:
 Clean up TODO (and various comments)
@@ -22,27 +25,27 @@ ship mouse-controllable
 
 ### Import Modules
 
-from pygame.locals import *
+from pygame.locals import *  # pygame constants, like "K_ESCAPE".
 from numpy import array
 
-# Numeric arrays are (almost too) elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
+# Numeric arrays are elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
 # I don't remember why I'm not just using plain arrays. Speed? Oh well.
 
-from spacewar_func import * # My Spacewar functions
+from spacewar_func import *  # My Spacewar functions
 
 ### Stuff you can change
 
-DISP_WIDTH, DISP_HEIGHT  = (800,600)
+DISP_WIDTH, DISP_HEIGHT = (800, 600)
 SOUND = 1
-FPS = 30 # frames per second
+FPS = 30  # frames per second
 
 WALLS = 1           # Does the universe have bouncy walls? Or is it toroidal?
 GRAV_CONST = 0.01   # I like to make this very low, and the sun(s) massive.
 
 SHIP1_THRUST_KEY = K_w
-SHIP1_LEFT_KEY   = K_a
-SHIP1_RIGHT_KEY  = K_d
-SHIP1_SHOOT_KEY  = K_q
+SHIP1_LEFT_KEY =   K_a
+SHIP1_RIGHT_KEY =  K_d
+SHIP1_SHOOT_KEY =  K_q
 
 SHIP2_THRUST_KEY = K_i
 SHIP2_LEFT_KEY   = K_j
@@ -51,9 +54,9 @@ SHIP2_SHOOT_KEY  = K_k
 
 SUN = 2500          # Mass of Sun. 0 = no sun
 MAXSPEED = 30
-SHIP_ROTATE = 10 # How fast a ship can rotate. Specifically: how many degrees a ship can turn in a tick.
+SHIP_ROTATE = 10  # How many degrees a ship can turn in a tick.
 THRUST = 0.1
-START_ENERGY = 10 # Eventually, 100
+START_ENERGY = 10  # Eventually, 100
 CRASH_PAIN = 5
 SHOT_SPEED = 6
 SHOT_LIFESPAN = 250
@@ -62,19 +65,22 @@ SHOT_PAIN = 5
 
 ### Initialization
 
-if not pygame.font: print 'Warning, fonts disabled'
-if not pygame.mixer: print 'Warning, sound disabled'
+if not pygame.font:
+    print 'Warning, fonts disabled'
+if not pygame.mixer:
+    print 'Warning, sound disabled'
 
 # Everyone can play sounds! (I know, sloppy.)
 
 soundplay = {}
 
-# These are some groups I want everyone to be able to access. (See above re: sloppy)
+# These are some groups I want everyone to be able to access.
+# Acknowledged: this is not the best way to do this.
 
 flames     = pygame.sprite.RenderUpdates()
 bodys      = pygame.sprite.RenderUpdates()
 explosions = pygame.sprite.RenderUpdates()
-ships      = pygame.sprite.Group() # For keeping track of Ship.meters
+ships      = pygame.sprite.Group()  # For keeping track of Ship.meters
 
 ### Classes for our game objects
 
@@ -331,8 +337,9 @@ def main():
 
     #Initialize Everything
     pygame.init()
-    if not SOUND: pygame.mixer.quit()
-    screen = pygame.display.set_mode((DISP_WIDTH,DISP_HEIGHT))
+    if not SOUND:
+        pygame.mixer.quit()
+    screen = pygame.display.set_mode((DISP_WIDTH, DISP_HEIGHT))
     pygame.display.set_caption('Spacewar')
 
     # Create and display the backgound

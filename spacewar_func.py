@@ -10,7 +10,7 @@ def cos(x):
 	"A cos() for degrees (which pygame prefers)"
 	return math.cos(math.pi*x/180)
 
-def dist_sqrd(a,b): 
+def dist_sqrd(a,b):
 	"Distance (squared) between two points (points == sequence types of length 2)"
 	return (a[0] - b[0])**2 + (a[1] - b[1])**2
 
@@ -20,14 +20,13 @@ def normalize(r,n=1):
 
 def bounce(a,b):
 	'''This original "billiard-ball" collision method has loads of
-	redundancies, but is relatively easy to understand. Yeah, right:
-	This is black magic to me.'''
+	redundancies, but is relatively easy to understand.'''
 
 	fv = (a.mass * a.v + b.mass * b.v) / (a.mass + b.mass) # Velocity of the center of momentum
 	fp = (a.mass * a.p + b.mass * b.p) / (a.mass + b.mass)
-	
+
 	# These are the velocities of the ships in the center of momentum frame.
-	fav = a.v - fv 
+	fav = a.v - fv
 	fbv = b.v - fv
 
 	fap = a.p - fp
