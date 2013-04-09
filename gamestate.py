@@ -9,6 +9,8 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
+from pygame.locals import *  # pygame constants, like "K_ESCAPE".
+
 DISP_WIDTH, DISP_HEIGHT = (800, 600)
 SOUND = 1
 FPS = 30  # frames per second
@@ -26,7 +28,7 @@ SHIP2_LEFT_KEY   = K_j
 SHIP2_RIGHT_KEY  = K_l
 SHIP2_SHOOT_KEY  = K_k
 
-SUN = 2500          # Mass of Sun. 0 = no sun
+SUN_MASS = 2500          # Mass of Sun. 0 = no sun
 MAXSPEED = 30
 SHIP_ROTATE = 10  # How many degrees a ship can turn in a tick.
 THRUST = 0.1
@@ -36,6 +38,7 @@ SHOT_SPEED = 6
 SHOT_LIFESPAN = 250
 SHOT_DELAY = 15
 SHOT_PAIN = 5
+
 
 
 def main():

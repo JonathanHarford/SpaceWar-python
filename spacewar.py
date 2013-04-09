@@ -26,14 +26,13 @@ ship mouse-controllable
 
 ### Import Modules
 
-from pygame.locals import *  # pygame constants, like "K_ESCAPE".
 from numpy import array
 
 # Numeric arrays are elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
 # I don't remember why I'm not just using plain arrays. Speed? Oh well.
 
 from spacewar_func import *  # My Spacewar functions
-from gamestate import *
+import gamestate
 
 ### Initialization
 
@@ -62,7 +61,7 @@ class Body(pygame.sprite.Sprite):
     def __init__(self,img,p,v=(0,0)):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = img
-        self.area = pygame.Rect(0,0,DISP_WIDTH,DISP_HEIGHT)
+        self.area = pygame.Rect(0,0,gamestate.DISP_WIDTH,gamestate.DISP_HEIGHT)
         self.rect.center = p
         self.p = array(self.rect.center) # position
         self.v = array(v)                # velocity
@@ -85,14 +84,14 @@ class Body(pygame.sprite.Sprite):
         "Alters this body's acceleration based on the distance and mass of body b. (I.e., gravity)"
         if self.intersects(b): return # To keep Bodys from jamming against each other (I think). Also escapes when self=b
         r =  b.p - self.p
-        gravity = GRAV_CONST*b.mass/dist_sqrd((0,0),r)
+        gravity = gamestate.GRAV_CONST*b.mass/dist_sqrd((0,0),r)
         self.a = self.a + gravity*r
 
     def update(self):
         self.v = self.v + self.a
         self.p = self.p + self.v
 
-        if WALLS:
+        if gamestate.WALLS:
             if self.p[0] - self.radius < self.area.left:
                 self.v[0] = -self.v[0]
                 self.p[0] = 2*self.radius-self.p[0]
@@ -112,9 +111,10 @@ class Body(pygame.sprite.Sprite):
             elif self.p[1] > self.area.bottom: self.p[1] = self.area.top
 
         ### Speed limit
-        if self.speed_sqrd() > MAXSPEED**2: self.v = normalize(self.v,MAXSPEED)
+        if self.speed_sqrd() > gamestate.MAXSPEED**2:
+            self.v = normalize(self.v, gamestate.MAXSPEED)
 
-        self.a = 0 * self.a # Remove all acceleration, for this tick
+        self.a = 0 * self.a  # Remove all acceleration, for this tick
 
         self.rect.center = self.p # Update where the picture is blitted
 
@@ -131,7 +131,7 @@ class Body(pygame.sprite.Sprite):
             if isinstance(b,Ship):
                 soundplay["bonk"]()
                 bounce(self,b)
-                b.meter.decrease(CRASH_PAIN)
+                b.meter.decrease(gamestate.CRASH_PAIN)
             if isinstance(b,Shot):
                 soundplay["drip"]()
                 b.timeleft = 0
@@ -139,19 +139,19 @@ class Body(pygame.sprite.Sprite):
             if isinstance(b,Sun):
                 soundplay["bonk"]()
                 bounce(self,b)
-                self.meter.decrease(CRASH_PAIN)
+                self.meter.decrease(gamestate.CRASH_PAIN)
             if isinstance(b,Ship):
                 soundplay["bam"]()
                 bounce(self,b)
             if isinstance(b,Shot):
                 soundplay["doink"]()
                 b.timeleft = 0
-                self.meter.decrease(SHOT_PAIN)
+                self.meter.decrease(gamestate.SHOT_PAIN)
         if isinstance(self,Shot):
             if isinstance(b,Sun): soundplay["drip"]()
             if isinstance(b,Ship):
                 soundplay["doink"]()
-                b.meter.decrease(SHOT_PAIN)
+                b.meter.decrease(gamestate.SHOT_PAIN)
             # if isinstance(b,Shot): tiny_boom.play()
             self.timeleft = 0
 
@@ -163,7 +163,7 @@ class Sun(Body):
 
     def __init__(self,img,p,v=(0,0)):
         Body.__init__(self,img,p,v) #call Body intializer
-        self.mass = SUN
+        self.mass = gamestate.SUN_MASS
 
 ### End class Sun
 
@@ -171,14 +171,14 @@ class Sun(Body):
 class Ship(Body):
     """Spaceship object."""
 
-    def __init__(self,img,p,v=(0,0)):
-        Body.__init__(self,img,p,v)
+    def __init__(self, img, p, v=(0,0)):
+        Body.__init__(self, img, p, v)
         self.angle = 0.0
-        self.original = self.image # Useful for image rotations.
+        self.original = self.image  # Useful for image rotations.
         self.thrust = 0
-        self.cantshoot = 0 # this becomes nonzero for a short while after a shot is fired
+        self.cantshoot = 0  # this becomes nonzero for a short while after a shot is fired
         self.flame = Flame()
-        self.meter = Meter(pygame.Rect(10,10,300,20),START_ENERGY)
+        self.meter = Meter(pygame.Rect(10,10,300,20),gamestate.START_ENERGY)
         self.add(ships)
 
     def thrustvec(self): return (cos(self.angle), -sin(self.angle))
@@ -187,7 +187,7 @@ class Ship(Body):
         if self.cantshoot: self.cantshoot = self.cantshoot - 1
         if self.thrust:
             tmp_thrustvec = self.thrustvec() # I use it twice, so I calculate it once
-            self.a = self.a + (THRUST * tmp_thrustvec[0], THRUST * tmp_thrustvec[1])
+            self.a = self.a + (gamestate.THRUST * tmp_thrustvec[0], gamestate.THRUST * tmp_thrustvec[1])
             Body.update(self)
             self.flame.rect.center = self.p - (self.radius * tmp_thrustvec[0],self.radius * tmp_thrustvec[1])
         else: Body.update(self) # I know, having this under the "if" AND the "else" seems silly. Trust me. it's good.
@@ -220,10 +220,10 @@ class Ship(Body):
     def shoot(self):
         "shoot a missile"
         tmp_thrustvec = self.thrustvec() # I use it twice, so I calculate it once
-        self.cantshoot = SHOT_DELAY
+        self.cantshoot = gamestate.SHOT_DELAY
         Shot(load_image("shot.png"),
             (self.p[0] + 1.5*self.radius * tmp_thrustvec[0],self.p[1] + 1.5*self.radius * tmp_thrustvec[1]),
-            (self.v[0] + SHOT_SPEED      * tmp_thrustvec[0],self.v[1] + SHOT_SPEED      * tmp_thrustvec[1]))
+            (self.v[0] + gamestate.SHOT_SPEED      * tmp_thrustvec[0],self.v[1] + gamestate.SHOT_SPEED      * tmp_thrustvec[1]))
 
 ### End class Ship
 
@@ -232,7 +232,7 @@ class Shot(Body):
     """Shot object."""
     def __init__(self,img,p,v=(0,0)):
         Body.__init__(self,img,p,v)
-        self.timeleft = SHOT_LIFESPAN; # Why is there a semicolon here? I'm scared to delete it.
+        self.timeleft = gamestate.SHOT_LIFESPAN; # Why is there a semicolon here? I'm scared to delete it.
 
     # Should I really be killing shots, or just putting them out of the way until one needs to be born?
 
@@ -309,9 +309,9 @@ def main():
 
     #Initialize Everything
     pygame.init()
-    if not SOUND:
+    if not gamestate.SOUND:
         pygame.mixer.quit()
-    screen = pygame.display.set_mode((DISP_WIDTH, DISP_HEIGHT))
+    screen = pygame.display.set_mode((gamestate.DISP_WIDTH, gamestate.DISP_HEIGHT))
     pygame.display.set_caption('Spacewar')
 
     # Create and display the backgound
@@ -327,26 +327,27 @@ def main():
     soundplay["bonk"]  = load_sound('bonk.wav')
     soundplay["doink"] = load_sound('doink.wav')
     ship1 = Ship(load_image("ship.png"),(200,200),(-3,3))
-    if SUN: Sun(load_image("ball.png"),(400,300))
+    if gamestate.SUN_MASS > 0: Sun(load_image("ball.png"),(400,300))
 
     # Main Loop
     mainloop = True
     while mainloop:
-        clock.tick(FPS)
+        clock.tick(gamestate.FPS)
 
         # Handle Input Events
         for event in pygame.event.get():
-            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE): mainloop = False
+            if event.type == gamestate.QUIT or (event.type == gamestate.KEYDOWN and event.key == gamestate.K_ESCAPE):
+                mainloop = False
             keystate = pygame.key.get_pressed()
-        direction = keystate[SHIP1_LEFT_KEY] - keystate[SHIP1_RIGHT_KEY]
-        if direction: ship1.rotate(SHIP_ROTATE * direction)
-        if keystate[SHIP1_THRUST_KEY]:
+        direction = keystate[gamestate.SHIP1_LEFT_KEY] - keystate[gamestate.SHIP1_RIGHT_KEY]
+        if direction: ship1.rotate(gamestate.SHIP_ROTATE * direction)
+        if keystate[gamestate.SHIP1_THRUST_KEY]:
             ship1.thrust = 1
             flames.add(ship1.flame)
         else:
             ship1.thrust = 0
             flames.remove(ship1.flame)
-        if keystate[SHIP1_SHOOT_KEY]:
+        if keystate[gamestate.SHIP1_SHOOT_KEY]:
             if not ship1.cantshoot: ship1.shoot()
 
         # This loop compares every unique pair of sprites once and only
