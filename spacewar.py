@@ -26,6 +26,7 @@ ship mouse-controllable
 
 ### Import Modules
 
+import pygame
 from numpy import array
 
 # Numeric arrays are elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
@@ -33,6 +34,7 @@ from numpy import array
 
 from spacewar_func import *  # My Spacewar functions
 import gamestate
+import flame
 
 ### Initialization
 
@@ -202,16 +204,16 @@ class Ship(Body):
             self.meter.value = 0
             Shot(load_image("shot.png"),
                 (self.p[0] + 1.5*self.radius ,self.p[1] + 1.5*self.radius),
-                (self.v[0] + SHOT_SPEED      ,self.v[1] + 3))
+                (self.v[0] + gamestate.SHOT_SPEED,self.v[1] + 3))
             Shot(load_image("shot.png"),
                 (self.p[0] + 1.5*self.radius ,self.p[1] - 1.5*self.radius),
-                (self.v[0] + SHOT_SPEED      ,self.v[1] - 3))
+                (self.v[0] + gamestate.SHOT_SPEED,self.v[1] - 3))
             Shot(load_image("shot.png"),
                 (self.p[0] - 1.5*self.radius ,self.p[1] + 1.5*self.radius),
-                (self.v[0] - SHOT_SPEED      ,self.v[1] + 3))
+                (self.v[0] - gamestate.SHOT_SPEED,self.v[1] + 3))
             Shot(load_image("shot.png"),
                 (self.p[0] - 1.5*self.radius ,self.p[1] - 1.5*self.radius),
-                (self.v[0] - SHOT_SPEED      ,self.v[1] - 3))
+                (self.v[0] - gamestate.SHOT_SPEED,self.v[1] - 3))
 
     def rotate(self,deg):
         "Rotates the ship image"
@@ -232,7 +234,7 @@ class Shot(Body):
     """Shot object."""
     def __init__(self,img,p,v=(0,0)):
         Body.__init__(self,img,p,v)
-        self.timeleft = gamestate.SHOT_LIFESPAN; # Why is there a semicolon here? I'm scared to delete it.
+        self.timeleft = gamestate.SHOT_LIFESPAN
 
     # Should I really be killing shots, or just putting them out of the way until one needs to be born?
 
@@ -245,7 +247,6 @@ class Shot(Body):
             self.kill()
 
 ### End class Shot
-
 
 class Flame(pygame.sprite.Sprite):
     "What comes out of the rockets"
