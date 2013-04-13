@@ -9,7 +9,7 @@ A star in the centre of the screen pulls on both ships and requires maneuvering
 to avoid falling into it.
 
 TODO:
-Create Gamestate module
+Create Gamestate module?
 Clean up TODO (and various comments)
 Move classes into their own files.
 Abstract code in main loop into functions.
@@ -128,10 +128,10 @@ class Body(pygame.sprite.Sprite):
         if isinstance(self,Sun):
             if isinstance(b,Sun):
                 soundplay["bonk"]()
-                bounce(self,b)
+                self.bounce(b)
             if isinstance(b,Ship):
                 soundplay["bonk"]()
-                bounce(self,b)
+                self.bounce(b)
                 b.meter.decrease(CRASH_PAIN)
             if isinstance(b,Shot):
                 soundplay["drip"]()
@@ -139,11 +139,11 @@ class Body(pygame.sprite.Sprite):
         if isinstance(self,Ship):
             if isinstance(b,Sun):
                 soundplay["bonk"]()
-                bounce(self,b)
+                self.bounce(b)
                 self.meter.decrease(CRASH_PAIN)
             if isinstance(b,Ship):
                 soundplay["bam"]()
-                bounce(self,b)
+                self.bounce(b)
             if isinstance(b,Shot):
                 soundplay["doink"]()
                 b.timeleft = 0
@@ -155,6 +155,33 @@ class Body(pygame.sprite.Sprite):
                 b.meter.decrease(SHOT_PAIN)
             # if isinstance(b,Shot): tiny_boom.play()
             self.timeleft = 0
+
+    def bounce(self,othr):
+	'''This original "billiard-ball" collision method has loads of
+	redundancies, but is relatively easy to understand.'''
+
+    	fv = (self.mass * self.v + othr.mass * othr.v) / (self.mass + othr.mass) # Velocity of the center of momentum
+    	fp = (self.mass * self.p + othr.mass * othr.p) / (self.mass + othr.mass)
+
+    	# These are the velocities of the ships in the center of momentum frame.
+    	fav = self.v - fv
+    	fbv = othr.v - fv
+
+    	fap = self.p - fp
+    	fbp = othr.p - fp
+
+    	dist  = math.sqrt(dist_sqrd(fap,fbp))
+    	speed = math.hypot(fav[0],fav[1])
+    	sinA = -( (fbp[0]-fap[0])*fav[1] - (fbp[1]-fap[1])*fav[0] ) / (dist*speed)
+    	cosA =  ( (fbp[0]-fap[0])*fav[0] + (fbp[1]-fap[1])*fav[1] ) / (dist*speed)
+
+    	# Calculate the new velocities (in the c of m frame).
+    	fav = -((cosA*cosA-sinA*sinA)*fav[0] - (2*sinA*cosA)*fav[1]),-((2*sinA*cosA)*fav[0] + (cosA*cosA-sinA*sinA)*fav[1])
+    	fbv = -((cosA*cosA-sinA*sinA)*fbv[0] - (2*sinA*cosA)*fbv[1]),-((2*sinA*cosA)*fbv[0] + (cosA*cosA-sinA*sinA)*fbv[1])
+
+    	# Transform back to original frame
+    	self.v = fav + fv
+    	othr.v = fbv + fv
 
 ### End class Body
 
