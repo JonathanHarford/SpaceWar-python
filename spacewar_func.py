@@ -37,44 +37,44 @@ SHOT_PAIN = 5
 # Functions
 
 def sin(x):
-	"A sin() for degrees (which pygame prefers)"
-	return math.sin(math.pi*x/180)
+    """Return sin(x) where x is in degrees (which pygame prefers)"""
+    return math.sin(math.pi*x/180)
 
 def cos(x):
-	"A cos() for degrees (which pygame prefers)"
-	return math.cos(math.pi*x/180)
+    """Return cos(x) where x is in degrees (which pygame prefers)"""
+    return math.cos(math.pi*x/180)
 
 def dist_sqrd(a,b):
-	"Distance (squared) between two points (points == sequence types of length 2)"
-	return (a[0] - b[0])**2 + (a[1] - b[1])**2
+    """Return distance (squared) between two points"""
+    return (a[0] - b[0])**2 + (a[1] - b[1])**2
 
 def normalize(r,n=1):
-	"Returns 2-vector r but with a length of n"
-	return n * r / math.hypot(r[0],r[1])
+    """Return 2-vector r but with a length of n"""
+    return n * r / math.hypot(r[0],r[1])
 
 def load_image(name):
-	"Loads image from data directory. Returns the image itself and its bounding rectangle"
-	fullname = os.path.join('data', name)
-	try:
-		image = pygame.image.load(fullname).convert_alpha()
-	except pygame.error, message:
-		print 'Cannot load image:', fullname
-		raise SystemExit, message
-	return image, image.get_rect()
+    """Load image from data directory, returning the image and its bounding rectangle"""
+    fullname = os.path.join('data', name)
+    try:
+        image = pygame.image.load(fullname).convert_alpha()
+    except pygame.error, message:
+        print 'Cannot load image:', fullname
+        raise SystemExit, message
+    return image, image.get_rect()
 
 def load_sound(name):
-	"Loads sound (wav) from data directory"
-	class NoneSound:
-		def play(self): pass
-	if not pygame.mixer or not pygame.mixer.get_init():
-		return NoneSound().play
-	fullname = os.path.join('data', name)
-	try:
-		soundplayer = pygame.mixer.Sound(fullname).play
-	except pygame.error, message:
-		print 'Cannot load sound:', fullname
-		raise SystemExit, message
-	return soundplayer
+    """Load sound (wav) from data directory"""
+    class NoneSound:
+        def play(self): pass
+    if not pygame.mixer or not pygame.mixer.get_init():
+        return NoneSound().play
+    fullname = os.path.join('data', name)
+    try:
+        soundplayer = pygame.mixer.Sound(fullname).play
+    except pygame.error, message:
+        print 'Cannot load sound:', fullname
+        raise SystemExit, message
+    return soundplayer
 
 # Classes
 
@@ -88,7 +88,7 @@ class GameState():
     soundplay = {}
 
 class Body(pygame.sprite.Sprite):
-    "Ships, shots, suns are all subclasses of this."
+    """Ships, shots, suns are all subclasses of this."""
 
     def __init__(self, gamestate, img,p,v=(0,0)):
         pygame.sprite.Sprite.__init__(self)
@@ -104,16 +104,16 @@ class Body(pygame.sprite.Sprite):
         self.add(gamestate.bodys)
 
     def speed_sqrd(self):
-        "The speed of the Body, squared."
+        """Return the speed of the Body, squared."""
         return self.v[0]**2 + self.v[1]**2 # Why not return the speed? Because math.sqrt() is relatively expensive.
 
     def intersects(self,b):
-        "Answers the question: Does this body intersect the body b?"
+        """Return: Does this body intersect the body b?"""
         return dist_sqrd(self.p,b.p) <= (self.radius + b.radius)**2
 
     # Well, the gravity's nice, but the orbits are like spirographs.
     def pulledby(self,b):
-        "Alters this body's acceleration based on the distance and mass of body b. (I.e., gravity)"
+        """Alters this body's acceleration based on the distance and mass of body b. (I.e., gravity)"""
         if self.intersects(b): return # To keep Bodys from jamming against each other (I think). Also escapes when self=b
         r =  b.p - self.p
         gravity = GRAV_CONST*b.mass/dist_sqrd((0,0),r)
@@ -137,10 +137,14 @@ class Body(pygame.sprite.Sprite):
                 self.v[1] = -self.v[1]
                 self.p[1] = 2*self.area.bottom - 2*self.radius - self.p[1]
         else:   ### Toroidal universe (not very precise)
-            if   self.p[0] < self.area.left:   self.p[0] = self.area.right
-            elif self.p[0] > self.area.right:  self.p[0] = self.area.left
-            if   self.p[1] < self.area.top:    self.p[1] = self.area.bottom
-            elif self.p[1] > self.area.bottom: self.p[1] = self.area.top
+            if   self.p[0] < self.area.left:   
+                self.p[0] = self.area.right
+            elif self.p[0] > self.area.right:  
+                self.p[0] = self.area.left
+            if   self.p[1] < self.area.top:    
+                self.p[1] = self.area.bottom
+            elif self.p[1] > self.area.bottom: 
+                self.p[1] = self.area.top
 
         ### Speed limit
         if self.speed_sqrd() > MAXSPEED**2:
@@ -180,7 +184,8 @@ class Body(pygame.sprite.Sprite):
                 b.timeleft = 0
                 self.meter.decrease(SHOT_PAIN)
         if isinstance(self,Shot):
-            if isinstance(b,Sun): gamestate.soundplay["drip"]()
+            if isinstance(b,Sun): 
+                gamestate.soundplay["drip"]()
             if isinstance(b,Ship):
                 gamestate.soundplay["doink"]()
                 b.meter.decrease(SHOT_PAIN)
@@ -188,30 +193,30 @@ class Body(pygame.sprite.Sprite):
             self.timeleft = 0
 
     def bounce(self,othr):
-	'''"Billiard-ball" collision'''
+        """'Billiard-ball' collision"""
 
-    	fv = (self.mass * self.v + othr.mass * othr.v) / (self.mass + othr.mass) # Velocity of the center of momentum
-    	fp = (self.mass * self.p + othr.mass * othr.p) / (self.mass + othr.mass)
+        fv = (self.mass * self.v + othr.mass * othr.v) / (self.mass + othr.mass) # Velocity of the center of momentum
+        fp = (self.mass * self.p + othr.mass * othr.p) / (self.mass + othr.mass)
 
-    	# These are the velocities of the ships in the center of momentum frame.
-    	fav = self.v - fv
-    	fbv = othr.v - fv
+        # These are the velocities of the ships in the center of momentum frame.
+        fav = self.v - fv
+        fbv = othr.v - fv
 
-    	fap = self.p - fp
-    	fbp = othr.p - fp
+        fap = self.p - fp
+        fbp = othr.p - fp
 
-    	dist  = math.sqrt(dist_sqrd(fap,fbp))
-    	speed = math.hypot(fav[0],fav[1])
-    	sinA = -( (fbp[0]-fap[0])*fav[1] - (fbp[1]-fap[1])*fav[0] ) / (dist*speed)
-    	cosA =  ( (fbp[0]-fap[0])*fav[0] + (fbp[1]-fap[1])*fav[1] ) / (dist*speed)
+        dist  = math.sqrt(dist_sqrd(fap,fbp))
+        speed = math.hypot(fav[0],fav[1])
+        sinA = -( (fbp[0]-fap[0])*fav[1] - (fbp[1]-fap[1])*fav[0] ) / (dist*speed)
+        cosA =  ( (fbp[0]-fap[0])*fav[0] + (fbp[1]-fap[1])*fav[1] ) / (dist*speed)
 
-    	# Calculate the new velocities (in the c of m frame).
-    	fav = -((cosA*cosA-sinA*sinA)*fav[0] - (2*sinA*cosA)*fav[1]),-((2*sinA*cosA)*fav[0] + (cosA*cosA-sinA*sinA)*fav[1])
-    	fbv = -((cosA*cosA-sinA*sinA)*fbv[0] - (2*sinA*cosA)*fbv[1]),-((2*sinA*cosA)*fbv[0] + (cosA*cosA-sinA*sinA)*fbv[1])
+        # Calculate the new velocities (in the c of m frame).
+        fav = -((cosA*cosA-sinA*sinA)*fav[0] - (2*sinA*cosA)*fav[1]),-((2*sinA*cosA)*fav[0] + (cosA*cosA-sinA*sinA)*fav[1])
+        fbv = -((cosA*cosA-sinA*sinA)*fbv[0] - (2*sinA*cosA)*fbv[1]),-((2*sinA*cosA)*fbv[0] + (cosA*cosA-sinA*sinA)*fbv[1])
 
-    	# Transform back to original frame
-    	self.v = fav + fv
-    	othr.v = fbv + fv
+        # Transform back to original frame
+        self.v = fav + fv
+        othr.v = fbv + fv
 
 ### End class Body
 
@@ -239,7 +244,8 @@ class Ship(Body):
         self.meter = Meter(pygame.Rect(10,10,300,20),START_ENERGY)
         self.add(gamestate.ships)
 
-    def thrustvec(self): return (cos(self.angle), -sin(self.angle))
+    def thrustvec(self): 
+        return (cos(self.angle), -sin(self.angle))
 
     def update(self, gamestate):
         if self.cantshoot:
@@ -249,7 +255,8 @@ class Ship(Body):
             self.a = self.a + (THRUST * tmp_thrustvec[0], THRUST * tmp_thrustvec[1])
             Body.update(self, gamestate)
             self.flame.rect.center = self.p - (self.radius * tmp_thrustvec[0],self.radius * tmp_thrustvec[1])
-        else: Body.update(self, gamestate) # I know, having this under the "if" AND the "else" seems silly. Trust me. it's good.
+        else: 
+            Body.update(self, gamestate) # I know, having this under the "if" AND the "else" seems silly. Trust me. it's good.
 
         # update image-- theoretically only necessary if angle has changed but I do it every frame.
         center = self.rect.center
@@ -277,11 +284,11 @@ class Ship(Body):
                 (self.v[0] - SHOT_SPEED,self.v[1] - 3))
 
     def rotate(self,deg):
-        "Rotates the ship image"
+        """Rotate the ship image"""
         self.angle = (self.angle + deg) % 360.0
 
     def shoot(self,gamestate):
-        "shoot a missile"
+        """Shoot a missile"""
         tmp_thrustvec = self.thrustvec() # I use it twice, so I calculate it once
         self.cantshoot = SHOT_DELAY
         Shot(gamestate,
@@ -293,7 +300,7 @@ class Ship(Body):
 
 
 class Shot(Body):
-    """Shot object."""
+    """Shot object"""
     def __init__(self, gamestate,img,p,v=(0,0)):
         Body.__init__(self, gamestate,img,p,v)
         self.timeleft = SHOT_LIFESPAN
@@ -311,7 +318,7 @@ class Shot(Body):
 ### End class Shot
 
 class Flame(pygame.sprite.Sprite):
-    "What comes out of the rockets"
+    """What comes out of the rockets"""
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -321,7 +328,7 @@ class Flame(pygame.sprite.Sprite):
 
 
 class Explosion(pygame.sprite.Sprite):
-    ""
+
     def __init__(self,p):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("flame.png")
@@ -342,11 +349,11 @@ class Explosion(pygame.sprite.Sprite):
 
 
 class Meter:
-    "Displays level of Energy, Shield, etc. for each ship"
+    """Displays level of Energy, Shield, etc. for each ship"""
 
     def __init__(self,rectangle,maximum,value=None):
         self.original_r = rectangle
-        self.r = rectangle.move(0,0) # This is the easiest way I could think of to copy a rectangle. Lame.
+        self.r = rectangle.move(0,0) # This is the easiest way I could think of to copy a rectangle.
         self.maximum = maximum
         if value: self.value = value
         else: self.value = maximum
@@ -361,6 +368,7 @@ class Meter:
     def clear(self,screen,bgd):
         screen.blit(bgd,self.original_r,self.original_r) # I should really only blit as large as necessary
 
-    def draw(self,screen): pygame.draw.rect(screen,(255,255,255),self.r,1)
+    def draw(self,screen): 
+        pygame.draw.rect(screen,(255,255,255),self.r,1)
 
 ### End class Meter
