@@ -80,7 +80,7 @@ def main():
 
         # Handle Input Events
         for event in pygame.event.get():
-            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+            if event.type == pygame.locals.QUIT or (event.type == pygame.locals.KEYDOWN and event.key == pygame.locals.K_ESCAPE):
                 mainloop = False
             keystate = pygame.key.get_pressed()
         direction = keystate[SHIP1_LEFT_KEY] - keystate[SHIP1_RIGHT_KEY]

@@ -2,7 +2,7 @@
 
 import math, os, pygame
 from numpy import array
-from pygame.locals import *  # pygame constants, like "K_ESCAPE".
+import pygame.locals # pygame constants, like "K_ESCAPE".
 
 # Default initialization settings
 
@@ -13,15 +13,15 @@ FPS = 30  # frames per second
 WALLS = 1           # Does the universe have bouncy walls? Or is it toroidal?
 GRAV_CONST = 0.01   # I like to make this very low, and the sun(s) massive.
 
-SHIP1_THRUST_KEY = K_w
-SHIP1_LEFT_KEY =   K_a
-SHIP1_RIGHT_KEY =  K_d
-SHIP1_SHOOT_KEY =  K_q
+SHIP1_THRUST_KEY = pygame.locals.K_w
+SHIP1_LEFT_KEY =   pygame.locals.K_a
+SHIP1_RIGHT_KEY =  pygame.locals.K_d
+SHIP1_SHOOT_KEY =  pygame.locals.K_q
 
-SHIP2_THRUST_KEY = K_i
-SHIP2_LEFT_KEY   = K_j
-SHIP2_RIGHT_KEY  = K_l
-SHIP2_SHOOT_KEY  = K_k
+SHIP2_THRUST_KEY = pygame.locals.K_i
+SHIP2_LEFT_KEY   = pygame.locals.K_j
+SHIP2_RIGHT_KEY  = pygame.locals.K_l
+SHIP2_SHOOT_KEY  = pygame.locals.K_k
 
 SUN_MASS = 2500          # Mass of Sun. 0 = no sun
 MAXSPEED = 30
