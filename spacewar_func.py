@@ -1,4 +1,6 @@
-"""Handy functions for my Spacewar program"""
+#!/usr/bin/env python
+
+"""Handy functions and classes for my Spacewar program"""
 
 import math, os, pygame
 from numpy import array
@@ -64,8 +66,11 @@ def load_image(name):
 
 def load_sound(name):
     """Load sound (wav) from data directory"""
+
     class NoneSound:
-        def play(self): pass
+        def play(self):
+            pass
+
     if not pygame.mixer or not pygame.mixer.get_init():
         return NoneSound().play
     fullname = os.path.join('data', name)
@@ -76,9 +81,7 @@ def load_sound(name):
         raise SystemExit, message
     return soundplayer
 
-# Classes
-
-### Classes for our game objects
+# Classes for our game objects
 
 class GameState():
     flames     = pygame.sprite.RenderUpdates()
@@ -97,7 +100,7 @@ class Body(pygame.sprite.Sprite):
         self.rect.center = p
         self.p = array(self.rect.center) # position
         self.v = array(v)                # velocity
-        ### "a" = acceleration. Each tick it starts at 0,0 then gets changed by thrust & gravity, then gets added to "v"
+        # "a" = acceleration. Each tick it starts at 0,0 then gets changed by thrust & gravity, then gets added to "v"
         self.a = array((0,0))
         self.radius = self.rect.height/2
         self.mass = 1.0
@@ -137,13 +140,13 @@ class Body(pygame.sprite.Sprite):
                 self.v[1] = -self.v[1]
                 self.p[1] = 2*self.area.bottom - 2*self.radius - self.p[1]
         else:   ### Toroidal universe (not very precise)
-            if   self.p[0] < self.area.left:   
+            if   self.p[0] < self.area.left:
                 self.p[0] = self.area.right
-            elif self.p[0] > self.area.right:  
+            elif self.p[0] > self.area.right:
                 self.p[0] = self.area.left
-            if   self.p[1] < self.area.top:    
+            if   self.p[1] < self.area.top:
                 self.p[1] = self.area.bottom
-            elif self.p[1] > self.area.bottom: 
+            elif self.p[1] > self.area.bottom:
                 self.p[1] = self.area.top
 
         ### Speed limit
@@ -184,7 +187,7 @@ class Body(pygame.sprite.Sprite):
                 b.timeleft = 0
                 self.meter.decrease(SHOT_PAIN)
         if isinstance(self,Shot):
-            if isinstance(b,Sun): 
+            if isinstance(b,Sun):
                 gamestate.soundplay["drip"]()
             if isinstance(b,Ship):
                 gamestate.soundplay["doink"]()
@@ -244,7 +247,7 @@ class Ship(Body):
         self.meter = Meter(pygame.Rect(10,10,300,20),START_ENERGY)
         self.add(gamestate.ships)
 
-    def thrustvec(self): 
+    def thrustvec(self):
         return (cos(self.angle), -sin(self.angle))
 
     def update(self, gamestate):
@@ -255,7 +258,7 @@ class Ship(Body):
             self.a = self.a + (THRUST * tmp_thrustvec[0], THRUST * tmp_thrustvec[1])
             Body.update(self, gamestate)
             self.flame.rect.center = self.p - (self.radius * tmp_thrustvec[0],self.radius * tmp_thrustvec[1])
-        else: 
+        else:
             Body.update(self, gamestate) # I know, having this under the "if" AND the "else" seems silly. Trust me. it's good.
 
         # update image-- theoretically only necessary if angle has changed but I do it every frame.
@@ -368,7 +371,7 @@ class Meter:
     def clear(self,screen,bgd):
         screen.blit(bgd,self.original_r,self.original_r) # I should really only blit as large as necessary
 
-    def draw(self,screen): 
+    def draw(self,screen):
         pygame.draw.rect(screen,(255,255,255),self.r,1)
 
 ### End class Meter

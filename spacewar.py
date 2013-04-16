@@ -1,6 +1,8 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 
 """
+Requires-Python: 2.7
+
 Spacewar! is one of the earliest known digital computer games. It is a
 two-player game, with each player taking control of a spaceship and attempting
 to destroy the other.
