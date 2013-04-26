@@ -12,7 +12,6 @@ to avoid falling into it.
 
 TODO:
 Create Gamestate module?
-Clean up TODO (and various comments)
 Abstract code in main loop into functions.
 Load all images at beginning
 Ditch numpy?

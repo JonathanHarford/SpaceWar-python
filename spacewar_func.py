@@ -2,7 +2,7 @@
 
 """Handy functions and classes for my Spacewar program"""
 
-import math, os, pygame
+import math, os, sys, pygame
 from numpy import array
 import pygame.locals # pygame constants, like "K_ESCAPE".
 
