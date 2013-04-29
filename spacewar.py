@@ -27,10 +27,6 @@ ship mouse-controllable
 
 import pygame
 
-
-# Numeric arrays are elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
-# I don't remember why I'm not just using plain arrays. Speed? Oh well.
-
 from spacewar_func import *  # My Spacewar functions
 
 
@@ -70,9 +66,10 @@ def main():
     gamestate.soundplay["bam"]   = load_sound('bam.wav')
     gamestate.soundplay["bonk"]  = load_sound('bonk.wav')
     gamestate.soundplay["doink"] = load_sound('doink.wav')
-    ship1 = Ship(gamestate,load_image("ship.png"),(200,200),SHIP1_KEYS,(-3,3))
-    ## ship2 = Ship(gamestate,load_image("ship.png"),(600,400),(-3,3))
-    if SUN_MASS > 0: Sun(gamestate,load_image("ball.png"),(400,300))
+    ship1 = Ship(gamestate,load_image("ship.png"),(200,200),SHIP1_KEYS,(10,10),(-3,  3))
+    ship2 = Ship(gamestate,load_image("ship.png"),(600,400),SHIP2_KEYS,(410,10),( 3, -3))
+    if SUN_MASS > 0:
+        Sun(gamestate,load_image("ball.png"),(400,300))
 
     # Main Loop
     mainloop = True
@@ -86,6 +83,7 @@ def main():
             keystate = pygame.key.get_pressed()
 
         ship1.getinput(gamestate, keystate)
+        ship2.getinput(gamestate, keystate)
 
         # This loop compares every unique pair of sprites once and only
         # once for collision detection. I suspect there's a more

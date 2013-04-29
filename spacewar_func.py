@@ -3,8 +3,13 @@
 """Handy functions and classes for my Spacewar program"""
 
 import math, os, sys, pygame
+
+# Numeric arrays are elegant: 2*[2,4] == [4,8] rather than 2*[2,4] == [2,4,2,4]
+# I don't remember why I'm not just using plain arrays. Speed? Oh well.
 from numpy import array
-import pygame.locals # pygame constants, like "K_ESCAPE".
+
+# pygame constants, like "K_ESCAPE".
+import pygame.locals
 
 # Default initialization settings
 
@@ -17,7 +22,7 @@ GRAV_CONST = 0.01   # I like to make this very low, and the sun(s) massive.
 
 # Ships' keys for Thrust, Left, Right, Shoot
 SHIP1_KEYS = (pygame.locals.K_w, pygame.locals.K_a, pygame.locals.K_d, pygame.locals.K_q)
-SHIP2_KEYS = (pygame.locals.K_i, pygame.locals.K_j, pygame.locals.K_l, pygame.locals.K_k)
+SHIP2_KEYS = (pygame.locals.K_i, pygame.locals.K_j, pygame.locals.K_l, pygame.locals.K_u)
 
 SUN_MASS = 2500          # Mass of Sun. 0 = no sun
 MAXSPEED = 30
@@ -231,7 +236,7 @@ class Sun(Body):
 class Ship(Body):
     """Spaceship object."""
 
-    def __init__(self, gamestate, img, p, keys, v=(0,0)):
+    def __init__(self, gamestate, img, p, keys, meter_pos, v=(0,0)):
         Body.__init__(self, gamestate, img, p, v)
         (self.thrustkey, self.leftkey, self.rightkey, self.shootkey) = keys
         self.angle = 0.0
@@ -239,7 +244,7 @@ class Ship(Body):
         self.thrust = 0
         self.cantshoot = 0  # this becomes nonzero for a short while after a shot is fired
         self.flame = Flame()
-        self.meter = Meter(pygame.Rect(10,10,300,20),START_ENERGY)
+        self.meter = Meter(pygame.Rect(meter_pos[0], meter_pos[1], 300, 10),START_ENERGY)
         self.add(gamestate.ships)
 
     def thrustvec(self):
