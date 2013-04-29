@@ -15,15 +15,9 @@ FPS = 30  # frames per second
 WALLS = 1           # Does the universe have bouncy walls? Or is it toroidal?
 GRAV_CONST = 0.01   # I like to make this very low, and the sun(s) massive.
 
-SHIP1_THRUST_KEY = pygame.locals.K_w
-SHIP1_LEFT_KEY =   pygame.locals.K_a
-SHIP1_RIGHT_KEY =  pygame.locals.K_d
-SHIP1_SHOOT_KEY =  pygame.locals.K_q
-
-SHIP2_THRUST_KEY = pygame.locals.K_i
-SHIP2_LEFT_KEY   = pygame.locals.K_j
-SHIP2_RIGHT_KEY  = pygame.locals.K_l
-SHIP2_SHOOT_KEY  = pygame.locals.K_k
+# Ships' keys for Thrust, Left, Right, Shoot
+SHIP1_KEYS = (pygame.locals.K_w, pygame.locals.K_a, pygame.locals.K_d, pygame.locals.K_q)
+SHIP2_KEYS = (pygame.locals.K_i, pygame.locals.K_j, pygame.locals.K_l, pygame.locals.K_k)
 
 SUN_MASS = 2500          # Mass of Sun. 0 = no sun
 MAXSPEED = 30
@@ -237,8 +231,9 @@ class Sun(Body):
 class Ship(Body):
     """Spaceship object."""
 
-    def __init__(self, gamestate, img, p, v=(0,0)):
+    def __init__(self, gamestate, img, p, keys, v=(0,0)):
         Body.__init__(self, gamestate, img, p, v)
+        (self.thrustkey, self.leftkey, self.rightkey, self.shootkey) = keys
         self.angle = 0.0
         self.original = self.image  # Useful for image rotations.
         self.thrust = 0
@@ -249,6 +244,26 @@ class Ship(Body):
 
     def thrustvec(self):
         return (cos(self.angle), -sin(self.angle))
+
+    def getinput(self, gamestate, keystate):
+        """Process keyboard input for this ship"""
+
+        # If leftkey or rightkey is pressed, turn the ship.
+        direction = keystate[self.leftkey] - keystate[self.rightkey]
+        if direction:
+            self.rotate(SHIP_ROTATE * direction)
+
+        # If thrustkey is pressed, thrust.
+        if keystate[self.thrustkey]:
+            self.thrust = 1
+            gamestate.flames.add(self.flame)
+        else:
+            self.thrust = 0
+            gamestate.flames.remove(self.flame)
+
+        # If shootkey is pressed (and we haven't fired too recently), shoot.
+        if keystate[self.shootkey]:
+            if not self.cantshoot: self.shoot(gamestate)
 
     def update(self, gamestate):
         if self.cantshoot:

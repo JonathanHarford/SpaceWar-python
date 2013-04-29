@@ -11,7 +11,6 @@ A star in the centre of the screen pulls on both ships and requires maneuvering
 to avoid falling into it.
 
 TODO:
-Create Gamestate module?
 Abstract code in main loop into functions.
 Load all images at beginning
 Ditch numpy?
@@ -71,7 +70,8 @@ def main():
     gamestate.soundplay["bam"]   = load_sound('bam.wav')
     gamestate.soundplay["bonk"]  = load_sound('bonk.wav')
     gamestate.soundplay["doink"] = load_sound('doink.wav')
-    ship1 = Ship(gamestate,load_image("ship.png"),(200,200),(-3,3))
+    ship1 = Ship(gamestate,load_image("ship.png"),(200,200),SHIP1_KEYS,(-3,3))
+    ## ship2 = Ship(gamestate,load_image("ship.png"),(600,400),(-3,3))
     if SUN_MASS > 0: Sun(gamestate,load_image("ball.png"),(400,300))
 
     # Main Loop
@@ -84,16 +84,8 @@ def main():
             if event.type == pygame.locals.QUIT or (event.type == pygame.locals.KEYDOWN and event.key == pygame.locals.K_ESCAPE):
                 mainloop = False
             keystate = pygame.key.get_pressed()
-        direction = keystate[SHIP1_LEFT_KEY] - keystate[SHIP1_RIGHT_KEY]
-        if direction: ship1.rotate(SHIP_ROTATE * direction)
-        if keystate[SHIP1_THRUST_KEY]:
-            ship1.thrust = 1
-            gamestate.flames.add(ship1.flame)
-        else:
-            ship1.thrust = 0
-            gamestate.flames.remove(ship1.flame)
-        if keystate[SHIP1_SHOOT_KEY]:
-            if not ship1.cantshoot: ship1.shoot(gamestate)
+
+        ship1.getinput(gamestate, keystate)
 
         # This loop compares every unique pair of sprites once and only
         # once for collision detection. I suspect there's a more
